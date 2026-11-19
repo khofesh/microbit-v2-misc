@@ -28,6 +28,24 @@
         "kind": "build",
         "isDefault": false
       }
+    },
+    {
+      "type": "shell",
+      "label": "IntelliSense: regenerate compile database",
+      "detail": "Re-run the CMake configure step so build/compile_commands.json matches the current sources and flags.",
+      "command": "cmake",
+      "args": [
+        "-S",
+        ".",
+        "-B",
+        "build",
+        "-DCMAKE_EXPORT_COMPILE_COMMANDS=ON",
+        "-DCMAKE_BUILD_TYPE=RelWithDebInfo"
+      ],
+      "options": {
+        "cwd": "${workspaceFolder}"
+      },
+      "problemMatcher": []
     }
   ]
 }

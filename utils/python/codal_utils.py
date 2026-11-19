@@ -17,7 +17,7 @@ def build(clean, verbose = False, parallelism = 10):
 
     if use_ninja:
         # configure
-        system("cmake .. -DCMAKE_BUILD_TYPE=RelWithDebInfo -G \"Ninja\"")
+        system("cmake .. -DCMAKE_BUILD_TYPE=RelWithDebInfo -DCMAKE_EXPORT_COMPILE_COMMANDS=ON -G \"Ninja\"")
 
         if clean:
             system("ninja clean")
@@ -29,7 +29,7 @@ def build(clean, verbose = False, parallelism = 10):
             system("ninja -j {}".format(parallelism))
     else:
         # configure
-        system("cmake .. -DCMAKE_BUILD_TYPE=RelWithDebInfo -G \"Unix Makefiles\"")
+        system("cmake .. -DCMAKE_BUILD_TYPE=RelWithDebInfo -DCMAKE_EXPORT_COMPILE_COMMANDS=ON -G \"Unix Makefiles\"")
 
         if clean:
             system("make clean")
