@@ -1,5 +1,5 @@
 build
-libraries
+#libraries
 .yotta.json
 yotta_modules
 yotta_targets
