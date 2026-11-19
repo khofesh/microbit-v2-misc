@@ -42,10 +42,86 @@ To omit the final output stage (for CI, for example) run without the `--output` 
     docker build -t microbit-tools .
 ```
 
+# CODAL libraries as git submodules
+In this repo, the CODAL libraries in `libraries/` are tracked as git submodules. `build.py` doesn't download them on the fly. The `libraries` line in `.gitignore` is commented out so git can see them.
+
+| Path | Repository |
+|------|------------|
+| `libraries/codal-microbit-v2` | https://github.com/lancaster-university/codal-microbit-v2 |
+| `libraries/codal-core` | https://github.com/lancaster-university/codal-core |
+| `libraries/codal-nrf52` | https://github.com/lancaster-university/codal-nrf52 (has a nested `nrfx` submodule) |
+| `libraries/codal-microbit-nrf5sdk` | https://github.com/microbit-foundation/codal-microbit-nrf5sdk |
+
+Clone with submodules:
+
+```
+    git clone --recurse-submodules <repo-url>
+    # or, after a plain clone:
+    git submodule update --init --recursive
+```
+
+How they were added (note: `--recursive` is not an option of `git submodule add`, and each submodule needs its own folder inside `libraries/`):
+
+```
+    git submodule add https://github.com/lancaster-university/codal-microbit-v2 libraries/codal-microbit-v2
+    git submodule add https://github.com/lancaster-university/codal-core libraries/codal-core
+    git submodule add https://github.com/lancaster-university/codal-nrf52 libraries/codal-nrf52
+    git submodule add https://github.com/microbit-foundation/codal-microbit-nrf5sdk libraries/codal-microbit-nrf5sdk
+    git submodule update --init --recursive
+```
+
+To update one, or pin it to a tag:
+
+```
+    cd libraries/codal-microbit-v2 && git fetch && git checkout <tag-or-commit> && cd ../..
+    git add libraries/codal-microbit-v2 && git commit -m "Bump codal-microbit-v2"
+```
+
+> `build.py` may check out the versions listed in `target.json` (under `libraries/codal-microbit-v2`) for these folders. Keep the submodule commits in line with that file, or build with CMake directly.
+
 # Building
-- Clone this repository
+- Clone this repository (see the submodule section above)
 - In the root of this repository type `python build.py`
 - The hex file will be built `MICROBIT.hex` and placed in the root folder.
+
+# Flashing the board
+When you plug in the micro:bit V2 with a USB **data** cable, it shows up as a drive called `MICROBIT`. To flash it, copy the `.hex` file onto that drive.
+
+### Copy to the drive (the usual way)
+On Fedora the drive is usually mounted at `/run/media/$USER/MICROBIT`:
+
+```
+    cp MICROBIT.hex /run/media/$USER/MICROBIT/ && sync
+```
+
+The yellow LED on the back flashes while it copies. Then the drive unmounts, comes back, and your program runs.
+
+If the drive isn't auto-mounted:
+
+```
+    lsblk -o NAME,LABEL,MOUNTPOINT | grep -i microbit
+    udisksctl mount -b /dev/sdX     # use the device shown above
+```
+
+Build and flash in one line:
+
+```
+    python build.py && cp MICROBIT.hex /run/media/$USER/MICROBIT/ && sync
+```
+
+### pyOCD (no drive needed; also works for debugging)
+
+```
+    pip install pyocd
+    pyocd flash -t nrf52833 MICROBIT.hex
+```
+
+On Linux you may need udev rules to run it without root (see the pyOCD docs).
+
+### If it doesn't work
+- **A `FAIL.TXT` file appears on the drive:** the hex is bad or is for the wrong board. Rebuild and make sure it's a V2 build.
+- **The board isn't detected:** try another cable or port, and update the DAPLink firmware. To do that, hold the reset button while plugging in; a `MAINTENANCE` drive appears, and you copy the latest firmware from microbit.org onto it.
+- **Your program doesn't start:** press the reset button on the back.
 
 # Developing
 You will find a simple main.cpp in the `source` folder which you can edit. CODAL will also compile any other C/C++ header files our source files with the extension `.h .c .cpp` it finds in the source folder.
