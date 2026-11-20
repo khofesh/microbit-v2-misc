@@ -132,7 +132,8 @@ The `samples` folder contains a number of simple sample programs that utilise yo
 
 `source/main.cpp` implements the motion alarm described in `docs/SPEC.md`. It arms after a
 5 s countdown, alarms on movement or a change of tilt, reports over BLE and deep-sleeps when
-armed, still and no phone is connected.
+armed, still and no phone is connected. See `docs/ARCHITECTURE.md` for a walkthrough of how
+the code works.
 
 ## Controls
 
