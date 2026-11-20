@@ -4,7 +4,7 @@ Target: BBC micro:bit V2 (nRF52833), CODAL C++. Build: `python build.py` → `MI
 
 ## 1. Goal
 
-Detect when the micro:bit is **moving** (in motion right now) or has been **moved** (it's still again, but its position or tilt has changed since it was armed). On either event, make a sound and show an LED sign. Buttons A/B control arming, sensitivity and sound.
+Detect when the micro:bit is **moving** (in motion right now) or has been **moved** (it's still again, but its position or tilt has changed since it was armed). While MOVING, make a sound and show an LED sign. Once it is still again (MOVED), stop the sound and keep only the LED sign. Buttons A/B control arming, sensitivity and sound.
 
 A paired **phone** gets a BLE notification on every alarm and can arm, disarm, acknowledge and mute remotely. While armed, still and with no phone connected, the board goes into **deep sleep** to save battery and wakes on motion.
 
@@ -71,10 +71,12 @@ Phone commands (§6) cause the same transitions as the matching buttons.
 | ARMING       | 5 s countdown, then capture `base` | `5`, `4`, `3`, `2`, `1`                      | Short tick each second                      |
 | ARMED        | —                                  | Centre pixel heartbeat (on 100 ms every 2 s) | Silent                                      |
 | ALARM_MOVING | Start siren, notify phone          | Animated arrows (rotating, 150 ms/frame)     | Two-tone siren 880 Hz / 660 Hz, 250 ms each |
-| ALARM_MOVED  | Start chirp, start 60 s timer, notify phone | Blinking `!` (500 ms on/off)        | 3 × 100 ms beeps at 1500 Hz every 2 s       |
+| ALARM_MOVED  | Stop sound, start 60 s timer, notify phone | Blinking `!` (500 ms on/off)         | Silent                                      |
 | SLEEP        | See §7                             | Off                                          | Silent                                      |
 
-ALARM_MOVED stays on until the user acknowledges it (A+B or phone), disarms it (A or phone), or until it **auto-clears after 60 s** with no new motion. Auto-clear goes back to ARMED and captures the current position as the new `base`. Any MOVING event during those 60 s goes back to ALARM_MOVING and restarts the timer when it settles again.
+ALARM_MOVED stays on until the user acknowledges it (A+B or phone), disarms it (A or phone), or until it **auto-clears after 60 s** with no new motion. Auto-clear goes back to ARMED and captures the current position as the new `base`. Any MOVING event during those 60 s goes back to ALARM_MOVING (siren restarts) and restarts the timer when it settles again.
+
+Sound plays only in ALARM_MOVING. As soon as the board is STILL again (→ ALARM_MOVED), the sound stops; the LED sign and phone notification remain.
 
 ## 5. Buttons
 
@@ -219,7 +221,7 @@ source/
 
 1. While disarmed, shaking the board causes no sound and no alarm sign.
 2. After arming and the 5 s countdown, lifting the board off the table triggers ALARM_MOVING within 200 ms.
-3. Putting the board down after moving it shows `!` and plays the beep pattern after about 1 s of stillness, whether or not the tilt changed.
+3. Putting the board down after moving it stops the sound and shows `!` after about 1 s of stillness, whether or not the tilt changed.
 4. If left untouched, ALARM_MOVED clears by itself after 60 s and returns to ARMED. Moving it again during those 60 s restarts the alarm.
 5. Light taps on the table don't trigger the alarm at sensitivity 1, but do at sensitivity 3.
 6. B (mute) during an alarm stops the sound but not the LEDs; A+B acknowledges and re-arms.
@@ -254,6 +256,7 @@ source/
 | -------------------- | ------------------------------------------------ |
 | Buzzer output        | On-board speaker only; P0 disabled               |
 | MOVED latching       | Auto-clears after 1 minute with no new motion    |
+| Sound when still     | Stops once STILL again (MOVED is LED only)       |
 | Arming countdown     | 5 s                                              |
 | Remote notification  | BLE to a bonded phone; no radio relay            |
 | Deep sleep vs BLE    | Sleep only when no phone is connected            |

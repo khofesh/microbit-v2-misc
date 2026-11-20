@@ -122,26 +122,6 @@ static void playMovingBeeps()
     sleepWhile(ALARM_MOVING, 400);
 }
 
-static void playMovedBeeps()
-{
-    for (int i = 0; i < 3; i++)
-    {
-        if (!soundActive(ALARM_MOVED))
-            return;
-
-        startTone(1500);
-        uBit.sleep(100);
-        stopTone();
-
-        if (!soundActive(ALARM_MOVED))
-            return;
-
-        uBit.sleep(100);
-    }
-
-    sleepWhile(ALARM_MOVED, 1500);
-}
-
 static void soundFiber()
 {
     uint32_t lastTick = 0xffffffffu;
@@ -199,20 +179,6 @@ static void soundFiber()
             else
             {
                 playSiren();
-            }
-            break;
-
-        case ALARM_MOVED:
-            lastTick = 0xffffffffu;
-
-            if (alarm_muted() || alarm_sound_mode() == SOUND_SILENT)
-            {
-                stopTone();
-                uBit.sleep(100);
-            }
-            else
-            {
-                playMovedBeeps();
             }
             break;
 

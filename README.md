@@ -149,6 +149,26 @@ armed, still and no phone is connected.
 Sensitivity and sound mode are stored in `uBit.storage` and survive a reset. Sound comes from
 the on-board speaker only; P0 is disabled at start-up.
 
+The alarm sounds only while the board is moving. About 1 s after it is still again, the sound
+stops and the display shows a blinking `!` (ALARM_MOVED) until it clears.
+
+### Changing sensitivity
+
+Sensitivity can only be changed while DISARMED:
+
+1. Press A to disarm if needed (dim centre pixel).
+2. Short-press B to step 1 → 2 → 3 → 1; the display shows 1–3 bars for 1 s.
+3. Press A to arm again.
+
+| Bars | Level            | Motion threshold | Tilt threshold |
+| ---- | ---------------- | ---------------- | -------------- |
+| 1    | Low              | 250 mg           | 25°            |
+| 2    | Medium (default) | 120 mg           | 15°            |
+| 3    | High             | 60 mg            | 8°             |
+
+B in ARMED only shows the current level. From a phone, write `0x05 <1-3>` to the Command
+characteristic (SET_SENS).
+
 ## LED states
 
 | State        | Display                                        |
