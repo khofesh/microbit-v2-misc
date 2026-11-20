@@ -13,6 +13,8 @@ jobs:
     name: Run CppCheck against the codebase + libraries
     steps:
       - uses: actions/checkout@v6
+        with:
+          submodules: recursive
       - name: Install CppCheck
         run: |
           sudo apt-get update

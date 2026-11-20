@@ -11,6 +11,8 @@ jobs:
     name: Build against Ubuntu-22.04 for release assets
     steps:
       - uses: actions/checkout@v6
+        with:
+          submodules: recursive
       - name: Install CppCheck
         run: |
           sudo apt-get update

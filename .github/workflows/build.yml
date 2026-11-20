@@ -26,6 +26,8 @@ jobs:
     name: ${{ matrix.os }}, gcc ${{ matrix.gcc }}, cmake ${{ matrix.cmake || 'latest'}}
     steps:
       - uses: actions/checkout@v6
+        with:
+          submodules: recursive
       - name: Setup Python
         uses: actions/setup-python@v6
         with:
