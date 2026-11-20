@@ -1,5 +1,9 @@
 #include "MicroBit.h"
-#include "samples/Tests.h"
+
+#include "alarm.h"
+#include "ble_alarm.h"
+#include "motion.h"
+#include "ui.h"
 
 MicroBit uBit;
 
@@ -7,8 +11,14 @@ int main()
 {
     uBit.init();
 
-    out_of_box_experience();
+    // Sound goes to the on-board speaker only; nothing may be driven on P0.
+    uBit.audio.setPinEnabled(false);
+    uBit.audio.setSpeakerEnabled(true);
 
-    microbit_panic( 999 );
+    ui_init();
+    alarm_init();
+    motion_start();
+    ble_alarm_init();
+
+    release_fiber();
 }
-

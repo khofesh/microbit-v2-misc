@@ -128,7 +128,75 @@ You will find a simple main.cpp in the `source` folder which you can edit. CODAL
 
 The `samples` folder contains a number of simple sample programs that utilise you may find useful.
 
-## Developer codal.json
+## Motion alarm
+
+`source/main.cpp` implements the motion alarm described in `docs/SPEC.md`. It arms after a
+5 s countdown, alarms on movement or a change of tilt, reports over BLE and deep-sleeps when
+armed, still and no phone is connected.
+
+## Controls
+
+| Input               | What it does                                                                |
+| ------------------- | --------------------------------------------------------------------------- |
+| A short             | Arm from DISARMED (5 s countdown), cancel/disarm otherwise                   |
+| A long (1 s)        | Capture the current position as the new reference                           |
+| B short             | DISARMED: cycle sensitivity 1→2→3; ARMED: show it; alarm: mute/unmute       |
+| B long (1 s)        | Cycle sound mode Siren → Beep → Silent (DISARMED and ARMED)                 |
+| A+B (hold in ARMED) | Live `dyn` bar graph                                                        |
+| A+B                 | DISARMED: scroll the tilt angle; alarm: acknowledge and return to ARMED     |
+| Touch logo          | Show BLE status (`C` connected, `-` not connected)                          |
+
+Sensitivity and sound mode are stored in `uBit.storage` and survive a reset. Sound comes from
+the on-board speaker only; P0 is disabled at start-up.
+
+## LED states
+
+| State        | Display                                        |
+| ------------ | ---------------------------------------------- |
+| DISARMED     | Dim centre pixel                               |
+| ARMING       | `5` … `1` countdown                            |
+| ARMED        | Short heartbeat on the centre pixel every 2 s  |
+| ALARM_MOVING | Rotating arrows                                |
+| ALARM_MOVED  | Blinking `!`                                   |
+| SLEEP        | Off                                            |
+
+## Pairing and phone
+
+1. Hold A+B and press reset. CODAL's pairing mode runs before the alarm firmware starts.
+2. Bond from nRF Connect (Just Works, encrypted link). Only bonded phones may connect.
+3. In nRF Connect, enable notifications on `c95a0002-36d7-4d56-bfbc-f6b93aab3e5e` (State)
+   and indications on `c95a0003-…` (Alarm event), then write 2-byte commands to
+   `c95a0004-…` (Command).
+
+| `cmd` | Command   | `arg`        |
+| ----- | --------- | ------------ |
+| 1     | ARM       | —            |
+| 2     | DISARM    | —            |
+| 3     | ACK       | —            |
+| 4     | MUTE      | 0 off / 1 on |
+| 5     | SET_SENS  | 1–3          |
+| 6     | SET_SOUND | 0–2          |
+
+The State characteristic is 4 bytes (`state`, `sensitivity`, `sound_mode`, `flags`), the Alarm
+event characteristic is 4 bytes (`type`, `seq` little-endian, `tilt`). Alarm types are 1
+MOVING, 2 MOVED and 3 CLEARED.
+
+## Deep sleep
+
+After 60 s ARMED and still with no phone connected, the board stops advertising and enters
+deep sleep. An accelerometer INT1 motion interrupt or a button press wakes it: motion goes
+straight to ALARM_MOVING, A/B wakes into ARMED and then handles the press normally. A
+connected phone, or a phone that disconnected less than 60 s ago, keeps the board awake.
+
+## Tests
+
+```bash
+cmake -S tests -B build/tests && cmake --build build/tests && ctest --test-dir build/tests
+```
+
+The host tests cover the pure motion detector and the BLE payload codec.
+
+# Developer codal.json
 
 There is an example `coda.dev.json` file which enables "developer builds" (clones dependencies from the latest commits, instead of the commits locked in the `codal-microbit-v2` tag), and adds extra CODAL flags that enable debug data to be printed to serial.
 To use it, simply copy the additional json entries into your `codal.json` file, or you can replace the file completely (`mv coda.dev.json codal.json`).
